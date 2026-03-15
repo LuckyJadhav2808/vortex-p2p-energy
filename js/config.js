@@ -28,7 +28,7 @@ const rtdb = getDatabase(app);
 // Backend API URL — auto-detect environment
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? "http://localhost:5000"
-  : "";  // In production, use relative paths or set your deployed backend URL here
+  : "https://vortex-backend-v92y.onrender.com";  // In production, use relative paths or set your deployed backend URL here
 
 // Auth state helper
 function requireAuth(callback) {
