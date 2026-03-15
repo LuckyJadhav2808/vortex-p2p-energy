@@ -14,8 +14,15 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == userId &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']) &&
         (
+          // Normal field updates (not touching walletBalance/energyBalance/tradesCompleted)
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['walletBalance', 'energyBalance', 'tradesCompleted'])
+          // OR admin can update anything
           || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+          // OR user can DECREASE their own walletBalance (withdrawal)
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletBalance'])
+            && request.resource.data.walletBalance < resource.data.walletBalance
+          )
         );
     }
 
