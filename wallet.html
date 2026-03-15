@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallet — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Manage your virtual wallet, add credits, withdraw, and view transaction history on Vortex.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <style>
+    .wallet-hero {
+      background: linear-gradient(135deg, rgba(0,255,135,0.08), rgba(0,229,255,0.05));
+      border: 1px solid rgba(0,255,135,0.15);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .wallet-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 50%, rgba(0,255,135,0.06) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, rgba(0,229,255,0.04) 0%, transparent 50%);
+    }
+    .wallet-balance-label {
+      font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.5rem;
+    }
+    .wallet-balance-value {
+      font-family: var(--font-display); font-size: 3.5rem;
+      font-weight: 700; color: var(--accent-green);
+      position: relative; z-index: 1;
+    }
+    .wallet-actions {
+      display: flex; gap: 1rem; justify-content: center;
+      margin-top: 1.5rem; position: relative; z-index: 1;
+      flex-wrap: wrap;
+    }
+    .summary-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .summary-card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.5rem; text-align: center;
+    }
+    .summary-label {
+      font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.35rem;
+    }
+    .summary-value {
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
+    }
+    .credit-options {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem; margin-bottom: 1rem;
+    }
+    .credit-option {
+      padding: 0.75rem; border: 1px solid var(--border-primary);
+      border-radius: var(--radius-sm); background: var(--bg-input);
+      color: var(--text-primary); font-weight: 600; font-size: 1rem;
+      cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    .credit-option:hover { border-color: rgba(255,255,255,0.15); }
+    .credit-option.selected {
+      border-color: var(--accent-green);
+      background: var(--accent-green-dim);
+      color: var(--accent-green);
+    }
+    .export-actions { display: flex; gap: 0.5rem; }
+    .export-actions button { font-size: 0.8rem; }
+    @media (max-width: 768px) {
+      .summary-cards { grid-template-columns: 1fr; }
+      .wallet-balance-value { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarLogo"></div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a href="marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>Marketplace</a>
+        <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>Analytics</a>
+        <a href="wallet.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallet</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        <a href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>Admin</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-zone" id="userZone">Zone —</div>
+        <span class="sidebar-user-role" id="userRole">—</span>
+        <div style="font-size:0.8rem;font-weight:500;" id="userName">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:0.5rem;color:var(--accent-red);">↩ Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <!-- Low Balance Banner -->
+      <div class="warning-banner" id="lowBalanceBanner" style="display:none;background:var(--accent-amber-dim);border:1px solid rgba(255,176,32,0.2);border-radius:var(--radius-md);padding:0.75rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;font-size:0.85rem;color:var(--accent-amber);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Low wallet balance! Add credits to continue trading on Vortex.
+      </div>
+
+      <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;">Wallet</h1>
+
+      <!-- Balance Card -->
+      <div class="wallet-hero">
+        <div class="wallet-balance-label">Available Balance</div>
+        <div class="wallet-balance-value" id="walletBalance">₹0.00</div>
+        <div class="wallet-actions">
+          <button class="btn btn-primary btn-lg" onclick="openAddCredits()">➕ Add Credits</button>
+          <button class="btn btn-amber btn-lg" onclick="openWithdraw()">⬇ Withdraw</button>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-label">Total Earned</div>
+          <div class="summary-value" style="color:var(--accent-green);" id="totalEarned">₹0.00</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total Spent</div>
+          <div class="summary-value" style="color:var(--accent-amber);" id="totalSpent">₹0.00</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Net Balance</div>
+          <div class="summary-value" id="netBalance">₹0.00</div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📜 Transaction History</span>
+          <div class="export-actions">
+            <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportPDF()">📄 PDF</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Type</th><th>Amount</th><th>Label</th><th>Counterparty</th></tr>
+            </thead>
+            <tbody id="txTableBody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Credits Modal -->
+  <div class="modal-overlay" id="creditsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ Add Credits</h3>
+        <button class="modal-close" onclick="closeCreditsModal()">×</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.25rem;">Select an amount or enter a custom value to top up your virtual wallet.</p>
+      <div class="credit-options">
+        <button class="credit-option" onclick="selectCreditAmount(100)">₹100</button>
+        <button class="credit-option" onclick="selectCreditAmount(250)">₹250</button>
+        <button class="credit-option" onclick="selectCreditAmount(500)">₹500</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Custom Amount (₹)</label>
+        <input type="number" class="form-control" id="customAmount" placeholder="Enter amount" min="1">
+      </div>
+      <button class="btn btn-primary" style="width:100%;" id="confirmCreditsBtn" onclick="confirmAddCredits()">Confirm Top-up</button>
+    </div>
+  </div>
+
+  <!-- Withdraw Modal -->
+  <div class="modal-overlay" id="withdrawModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">⬇ Withdraw Funds</h3>
+        <button class="modal-close" onclick="closeWithdrawModal()">×</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.5rem;">Withdraw credits from your virtual wallet.</p>
+      <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1.25rem;">Available: <strong id="withdrawMax" style="color:var(--accent-green);">₹0</strong></p>
+      <div class="form-group">
+        <label class="form-label">Withdrawal Amount (₹)</label>
+        <input type="number" class="form-control" id="withdrawAmount" placeholder="Enter amount" min="1">
+      </div>
+      <button class="btn btn-amber" style="width:100%;" id="confirmWithdrawBtn" onclick="confirmWithdraw()">Confirm Withdrawal</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/wallet.js"></script>
+</body>
+</html>

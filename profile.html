@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="View your Vortex profile, analytics, green impact tracker, and trade history.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .profile-layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.75rem; min-width: 0; }
+    .profile-card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 2rem; position: relative;
+      overflow: hidden; height: fit-content;
+    }
+    .profile-card-watermark {
+      position: absolute; top: -20px; right: -20px; opacity: 0.03;
+      font-size: 8rem; font-family: var(--font-display); font-weight: 800;
+      color: white; transform: rotate(15deg);
+    }
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--gradient-green); display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 700; color: var(--bg-primary);
+      margin: 0 auto 1rem;
+    }
+    .profile-name {
+      font-family: var(--font-display); font-size: 1.5rem;
+      font-weight: 700; text-align: center; margin-bottom: 0.25rem;
+    }
+    .profile-email {
+      font-size: 0.85rem; color: var(--text-muted); text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .profile-detail {
+      display: flex; justify-content: space-between;
+      padding: 0.625rem 0; border-bottom: 1px solid var(--border-primary);
+      font-size: 0.875rem;
+    }
+    .profile-detail:last-child { border-bottom: none; }
+    .profile-detail-label { color: var(--text-muted); }
+    .profile-detail-value { font-weight: 600; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-width: 0; }
+    .chart-card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.5rem;
+      min-width: 0; overflow: hidden;
+    }
+    .chart-card-title {
+      font-family: var(--font-display); font-size: 0.9rem;
+      font-weight: 600; margin-bottom: 0.75rem;
+    }
+    .chart-wrapper { height: 200px; position: relative; min-width: 0; overflow: hidden; }
+    .chart-card-full { grid-column: 1 / -1; }
+    .green-impact {
+      background: linear-gradient(135deg, rgba(0,255,135,0.08), rgba(0,229,255,0.04));
+      border: 1px solid rgba(0,255,135,0.15); border-radius: var(--radius-lg);
+      padding: 2rem; display: flex; align-items: center; gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .green-icon { font-size: 3rem; }
+    .green-value {
+      font-family: var(--font-display); font-size: 2.5rem;
+      font-weight: 700; color: var(--accent-green);
+    }
+    .green-label {
+      font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;
+    }
+    .green-target { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; }
+    @media (max-width: 1100px) {
+      .profile-layout { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="app-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarLogo"></div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a href="marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>Marketplace</a>
+        <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>Analytics</a>
+        <a href="wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallet</a>
+        <a href="profile.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        <a href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>Admin</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-zone" id="userZone">Zone —</div>
+        <span class="sidebar-user-role" id="userRole">—</span>
+        <div style="font-size:0.8rem;font-weight:500;" id="userName">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:0.5rem;color:var(--accent-red);">↩ Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;">Profile & Analytics</h1>
+
+      <div class="profile-layout">
+        <!-- Profile Card -->
+        <div class="profile-card">
+          <div class="profile-card-watermark">⚡</div>
+          <div class="profile-avatar" id="profileAvatar">A</div>
+          <div class="profile-name" id="profileName">—</div>
+          <div class="profile-email" id="profileEmail">—</div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Zone</span>
+            <span class="profile-detail-value" id="profileZone">—</span>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Role</span>
+            <span class="profile-detail-value" id="profileRole">—</span>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Solar Capacity</span>
+            <span class="profile-detail-value" id="profileCapacity">—</span>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Trades</span>
+            <span class="profile-detail-value" id="profileTrades">0</span>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Wallet</span>
+            <span class="profile-detail-value" style="color:var(--accent-green);" id="profileWallet">₹0</span>
+          </div>
+          <button class="btn btn-secondary w-full" style="margin-top:1.25rem;" onclick="openEditProfile()">✏️ Edit Profile</button>
+        </div>
+
+        <!-- Analytics -->
+        <div style="min-width:0;overflow:hidden;">
+          <!-- Green Impact Tracker -->
+          <div class="green-impact">
+            <div class="green-icon">🌿</div>
+            <div style="flex:1;">
+              <div class="green-label">Estimated CO₂ Saved</div>
+              <div class="green-value" id="co2Value">0 kg</div>
+              <div class="progress-bar" style="margin-top:0.75rem;">
+                <div class="progress-fill" id="co2Progress" style="width:0%;"></div>
+              </div>
+              <div class="green-target" id="co2Target">0 / 100 kg monthly target</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-card-title">📊 Production vs Consumption (7 days)</div>
+              <div class="chart-wrapper"><canvas id="prodConsChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-title">💰 Earnings / Savings (7 days)</div>
+              <div class="chart-wrapper"><canvas id="earningsChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Profile Layout Grid -->
+
+      <!-- Trade Activity Chart (Full Width) -->
+      <div class="chart-card chart-card-full" style="margin-top:1.5rem; background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: 1.5rem;">
+        <div class="chart-card-title">🕐 Trade Activity by Hour</div>
+        <div class="chart-wrapper"><canvas id="activityChart"></canvas></div>
+      </div>
+
+      <!-- Trade History (Full Width) -->
+      <div class="card" style="margin-top:1.5rem;">
+        <div class="card-header">
+          <span class="card-title">📜 Trade History</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>kWh</th><th>Price/kWh</th><th>Total</th><th>Counterparty</th></tr></thead>
+            <tbody id="tradeHistoryBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="tradeHistPag"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Edit Profile</h3>
+        <button class="modal-close" onclick="closeEditModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" id="editName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Zone</label>
+        <select class="form-control" id="editZone">
+          <option value="A">Zone A</option>
+          <option value="B">Zone B</option>
+          <option value="C">Zone C</option>
+          <option value="D">Zone D</option>
+          <option value="E">Zone E</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Solar Capacity (kWh/month)</label>
+        <input type="number" class="form-control" id="editCapacity" min="0">
+      </div>
+      <div style="display:flex;gap:0.75rem;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

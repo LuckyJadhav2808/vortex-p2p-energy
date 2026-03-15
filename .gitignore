@@ -1,0 +1,27 @@
+# Firebase
+serviceAccountKey.json
+firebase-debug.log
+.firebaserc
+firebase.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+
+# Node
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Browse and buy energy listings from prosumers in your neighborhood on the Vortex marketplace.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .filters-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .zone-tabs { display: flex; gap: 0.35rem; }
+    .zone-tab {
+      padding: 0.4rem 0.875rem; border-radius: var(--radius-sm);
+      background: var(--bg-input); border: 1px solid var(--border-primary);
+      color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .zone-tab:hover { border-color: rgba(255,255,255,0.15); }
+    .zone-tab.active {
+      background: var(--accent-green-dim); border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .listing-card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.5rem;
+      transition: all 0.3s; display: flex; flex-direction: column;
+    }
+    .listing-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: var(--shadow-glow-green);
+      transform: translateY(-2px);
+    }
+    .listing-card.own-zone { border-color: rgba(0,229,255,0.3); }
+    .listing-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .listing-timer {
+      margin-left: auto; font-family: var(--font-mono);
+      font-size: 0.8rem; color: var(--accent-amber);
+    }
+    .listing-body { flex: 1; margin-bottom: 1rem; }
+    .listing-kwh {
+      font-family: var(--font-display); font-size: 2rem;
+      font-weight: 700; color: var(--text-primary);
+    }
+    .listing-price {
+      font-family: var(--font-display); font-size: 1.25rem;
+      font-weight: 600; color: var(--accent-green); margin-top: 0.25rem;
+    }
+    .listing-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 0.75rem; border-top: 1px solid var(--border-primary);
+    }
+    .chart-container {
+      height: 320px; margin-top: 2.5rem;
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.75rem;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="app-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarLogo"></div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a href="marketplace.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>Marketplace</a>
+        <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>Analytics</a>
+        <a href="wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallet</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        <a href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>Admin</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-zone" id="userZone">Zone —</div>
+        <span class="sidebar-user-role" id="userRole">—</span>
+        <div style="font-size:0.8rem;font-weight:500;" id="userName">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:0.5rem;color:var(--accent-red);">↩ Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;">
+        Energy Marketplace
+        <span id="marketSubtitle" class="badge" style="font-size:0.85rem;font-weight:500;background:rgba(255,255,255,0.05);color:var(--text-muted);">Loading...</span>
+      </h1>
+      
+      <!-- Market view automatically determined by user role -->
+      <div class="filters-bar" style="margin-top: 1.5rem;">
+        <div class="zone-tabs" id="zoneTabsContainer">
+          <button class="zone-tab active" data-zone="All" onclick="filterZone('All')">All Zones</button>
+          <!-- Dynamic zones injected here -->
+        </div>
+        <select class="form-control" style="width:auto;" onchange="sortListings(this.value)">
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="quantity">Quantity</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+      <div class="listings-grid" id="listingsGrid">
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; margin-top: 1.5rem;">
+        <!-- Price History Chart -->
+        <div class="chart-container" style="margin-top: 0;">
+          <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-bottom:1rem;">📈 Price History (24h)</h3>
+          <div style="height:230px;">
+            <canvas id="priceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Market Activity -->
+        <div class="card" style="padding: 1.25rem;">
+          <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-bottom:1rem;">⚡ Recent Market Activity</h3>
+          <div id="marketplaceFeed" style="display:flex;flex-direction:column;gap:0.75rem;max-height:230px;overflow-y:auto;padding-right:0.5rem;">
+            <!-- Fetched via JS -->
+            <div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:1rem;">Loading activity...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Action Confirmation Modal -->
+  <div class="modal-overlay" id="actionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="actionModalTitle">⚡ Confirm Action</h3>
+        <button class="modal-close" onclick="closeActionModal()">×</button>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border-primary);">
+          <span style="color:var(--text-muted);">Zone</span>
+          <span id="buyModalZone" style="font-weight:600;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border-primary);">
+          <span style="color:var(--text-muted);">Amount</span>
+          <span id="buyModalKwh" style="font-weight:600;">— kWh</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border-primary);">
+          <span style="color:var(--text-muted);">Price/kWh</span>
+          <span id="buyModalPrice" style="font-weight:600;color:var(--accent-green);">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0.75rem 0;">
+          <span style="font-weight:600;">Total</span>
+          <span id="buyModalTotal" style="font-weight:700;font-size:1.25rem;color:var(--accent-green);">—</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="closeActionModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;" id="confirmActionBtn">Confirm Action</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/marketplace.js"></script>
+</body>
+</html>

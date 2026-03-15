@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Sign in or create your Vortex account to start trading solar energy with your neighbors.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <style>
+    .auth-left-content {
+      position: relative; z-index: 1;
+      text-align: center; padding: 3rem;
+      max-width: 400px;
+    }
+    .auth-left-content blockquote {
+      font-size: 1.25rem; font-style: italic;
+      color: var(--text-secondary); line-height: 1.6;
+      margin-bottom: 1rem;
+      border-left: 3px solid var(--accent-green);
+      padding-left: 1.25rem; text-align: left;
+    }
+    .auth-left-content cite {
+      font-size: 0.85rem; color: var(--text-muted); font-style: normal;
+    }
+    .auth-grid-bg {
+      position: absolute; inset: 0; overflow: hidden; opacity: 0.15;
+    }
+    .auth-grid-bg svg { width: 100%; height: 100%; }
+    @keyframes gridPulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.25; }
+    }
+    .auth-grid-bg { animation: gridPulse 4s ease-in-out infinite; }
+    .form-divider {
+      display: flex; align-items: center; gap: 1rem;
+      margin: 1.5rem 0; color: var(--text-muted); font-size: 0.8rem;
+    }
+    .form-divider::before, .form-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border-primary);
+    }
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+      width: 100%; padding: 0.75rem 1.25rem;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md); color: var(--text-primary);
+      font-size: 0.9rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-google:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .role-selector {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+    }
+    .role-option {
+      padding: 1rem; border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md); cursor: pointer;
+      text-align: center; transition: all 0.2s;
+      background: var(--bg-input);
+    }
+    .role-option:hover { border-color: rgba(255,255,255,0.15); }
+    .role-option.selected {
+      border-color: var(--accent-green);
+      background: var(--accent-green-dim);
+    }
+    .role-option input { display: none; }
+    .role-option-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .role-option-label { font-weight: 600; font-size: 0.85rem; }
+    .role-option-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+    #solarCapacityGroup { display: none; }
+    .auth-error {
+      background: var(--accent-red-dim); border: 1px solid rgba(255,71,87,0.3);
+      color: var(--accent-red); padding: 0.625rem 0.875rem;
+      border-radius: var(--radius-sm); font-size: 0.8rem;
+      margin-bottom: 1rem; display: none;
+    }
+    @media (max-width: 768px) {
+      .auth-side { display: none; }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="auth-layout">
+    <!-- Left decorative panel -->
+    <div class="auth-side">
+      <div class="auth-grid-bg">
+        <svg viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="authGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+              <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(0,255,135,0.3)" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="400" height="600" fill="url(#authGrid)"/>
+          <circle cx="200" cy="300" r="120" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+          <circle cx="200" cy="300" r="80" fill="none" stroke="rgba(0,255,135,0.1)" stroke-width="0.5" stroke-dasharray="4 4">
+            <animateTransform attributeName="transform" type="rotate" from="0 200 300" to="360 200 300" dur="30s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="200" cy="300" r="160" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="0.5" stroke-dasharray="8 4">
+            <animateTransform attributeName="transform" type="rotate" from="360 200 300" to="0 200 300" dur="45s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+      <div class="auth-left-content">
+        <blockquote>"The future of energy is decentralized. Every rooftop is a power station, every home a marketplace."</blockquote>
+        <cite>— The Vortex Vision</cite>
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="auth-form-side">
+      <div class="auth-form-container">
+        <div id="authLogo" style="margin-bottom: 2rem; text-align: center;"></div>
+
+        <!-- Tab Toggle -->
+        <div class="tab-group">
+          <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Login</button>
+          <button class="tab-btn" id="registerTab" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Error Display -->
+        <div class="auth-error" id="authError"></div>
+
+        <!-- Google Sign-In Button -->
+        <button class="btn-google" id="googleBtn" onclick="handleGoogleSignIn()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="form-divider">or</div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="loginEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-full btn-lg" id="loginBtn">Sign In</button>
+          <div style="text-align:center;margin-top:0.75rem;">
+            <a href="#" onclick="openForgotPassword(); return false;" style="font-size:0.8rem;color:var(--accent-cyan);">Forgot Password?</a>
+          </div>
+        </form>
+
+        <!-- Forgot Password Modal -->
+        <div class="modal-overlay" id="forgotPasswordModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h3 class="modal-title">🔑 Reset Password</h3>
+              <button class="modal-close" onclick="closeForgotPassword()">×</button>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.25rem;">Enter your email and we'll send a password reset link.</p>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="resetEmail" placeholder="you@example.com">
+            </div>
+            <div id="resetStatus" style="display:none;font-size:0.85rem;padding:0.75rem;border-radius:var(--radius-sm);margin-bottom:1rem;"></div>
+            <button class="btn btn-primary" style="width:100%;" id="resetBtn" onclick="handleResetPassword()">Send Reset Link</button>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <form id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="regName" placeholder="Aditi Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="regEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="regPassword" placeholder="Min 6 characters" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Zone / Neighborhood</label>
+            <select class="form-control" id="regZone" required>
+              <option value="">Loading zones...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <div class="role-selector">
+              <label class="role-option" id="roleProsumer" onclick="selectRole('prosumer')">
+                <input type="radio" name="role" value="prosumer">
+                <div class="role-option-icon">☀️</div>
+                <div class="role-option-label">Prosumer</div>
+                <div class="role-option-desc">I have solar panels</div>
+              </label>
+              <label class="role-option" id="roleConsumer" onclick="selectRole('consumer')">
+                <input type="radio" name="role" value="consumer">
+                <div class="role-option-icon">🏠</div>
+                <div class="role-option-label">Consumer</div>
+                <div class="role-option-desc">I need energy</div>
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="solarCapacityGroup">
+            <label class="form-label">Solar Capacity (kWh/month)</label>
+            <input type="number" class="form-control" id="regSolarCapacity" placeholder="e.g. 300" min="0">
+          </div>
+          <button type="submit" class="btn btn-primary w-full btn-lg" id="regBtn">Create Account</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+          <span id="switchText">Don't have an account?</span>
+          <a href="#" id="switchLink" onclick="switchTab(document.getElementById('registerForm').style.display==='none'?'register':'login'); return false;" style="font-weight: 600;">
+            <span id="switchAction">Register</span>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      auth, db, doc, getDoc, setDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged,
+      GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail
+    } from './js/config.js';
+    import { renderFullLogo, injectFavicon } from './js/logo.js';
+    import { showToast } from './js/utils.js';
+
+    // Render logo and favicon (scaled down for auth page)
+    const logoContainer = document.getElementById('authLogo');
+    renderFullLogo(logoContainer);
+    const fullLogo = logoContainer.querySelector('.vortex-logo-full');
+    if (fullLogo) {
+      fullLogo.style.padding = '1rem';
+      const wordmark = fullLogo.querySelector('.vortex-wordmark-text');
+      if (wordmark) wordmark.style.fontSize = '2.5rem';
+      const boltSvg = fullLogo.querySelector('.bolt-bg-svg');
+      if (boltSvg) { boltSvg.style.width = '50px'; boltSvg.style.height = '60px'; }
+    }
+    injectFavicon();
+
+    // If already logged in, show a link instead of auto-redirecting (prevents redirect loop)
+    let isRedirecting = false;
+    onAuthStateChanged(auth, (user) => {
+      if (user && !isRedirecting) {
+        // Don't auto-redirect — just show a helpful message
+        const errEl = document.getElementById('authError');
+        errEl.style.display = 'block';
+        errEl.style.background = 'rgba(0,255,135,0.08)';
+        errEl.style.borderColor = 'rgba(0,255,135,0.3)';
+        errEl.style.color = 'var(--accent-green)';
+        errEl.innerHTML = 'You are already logged in. <a href="dashboard.html" style="color:var(--accent-green);font-weight:700;text-decoration:underline;">Go to Dashboard →</a>';
+      }
+    });
+
+    // -- Load Zones Dynamically --
+    async function loadZones() {
+      const select = document.getElementById('regZone');
+      try {
+        const q = query(collection(db, 'zones'), where('status', '==', 'active'), orderBy('code'));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          select.innerHTML = '<option value="">Select your zone</option>';
+          snap.forEach(d => {
+            const z = d.data();
+            select.innerHTML += `<option value="${z.code}">Zone ${z.code} — ${z.label}</option>`;
+          });
+        } else {
+          select.innerHTML = '<option value="">No active zones found</option>';
+        }
+      } catch (err) {
+        console.error('Failed to load zones:', err);
+        select.innerHTML = '<option value="">Error loading zones</option>';
+      }
+    }
+    loadZones();
+
+    // -- Google Sign-In --
+    const googleProvider = new GoogleAuthProvider();
+
+    window.handleGoogleSignIn = async function() {
+      const btn = document.getElementById('googleBtn');
+      const errEl = document.getElementById('authError');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        // Check if user profile already exists in Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+        if (!userDoc.exists()) {
+          // First-time Google user — create profile with defaults
+          await setDoc(doc(db, 'users', user.uid), {
+            name: user.displayName || 'Vortex User',
+            email: user.email,
+            zone: 'A',
+            role: 'consumer',
+            solarCapacity: 0,
+            walletBalance: 500,
+            energyBalance: 0,
+            tradesCompleted: 0,
+            firstTradeCompleted: false,
+            isAdmin: false,
+            authProvider: 'google',
+            createdAt: serverTimestamp()
+          });
+
+          // Signup bonus wallet transaction
+          await addDoc(collection(db, 'walletTransactions'), {
+            userId: user.uid,
+            type: 'signup_bonus',
+            amount: 500,
+            label: 'Signup Bonus',
+            timestamp: serverTimestamp()
+          });
+        }
+
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        console.error('Google sign-in error:', err);
+        if (err.code !== 'auth/popup-closed-by-user') {
+          errEl.textContent = friendlyError(err.code);
+          errEl.style.display = 'block';
+        }
+        btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google`;
+      }
+    };
+
+    // -- Login handler --
+    window.handleLogin = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const errEl = document.getElementById('authError');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        errEl.textContent = friendlyError(err.code);
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    };
+
+    // -- Register handler --
+    window.handleRegister = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('regBtn');
+      const errEl = document.getElementById('authError');
+      errEl.style.display = 'none';
+
+      const role = document.querySelector('input[name="role"]:checked');
+      if (!role) {
+        errEl.textContent = 'Please select a role (Prosumer or Consumer).';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const name = document.getElementById('regName').value;
+        const zone = document.getElementById('regZone').value;
+        const roleValue = role.value;
+        const solarCapacity = roleValue === 'prosumer' ? (parseFloat(document.getElementById('regSolarCapacity').value) || 0) : 0;
+
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Create user profile in Firestore
+        await setDoc(doc(db, 'users', cred.user.uid), {
+          name,
+          email,
+          zone,
+          role: roleValue,
+          solarCapacity,
+          walletBalance: 500,
+          energyBalance: roleValue === 'prosumer' ? solarCapacity * 0.3 : 0,
+          tradesCompleted: 0,
+          firstTradeCompleted: false,
+          isAdmin: false,
+          authProvider: 'email',
+          createdAt: serverTimestamp()
+        });
+
+        // Initialize wallet transaction for signup bonus
+        await addDoc(collection(db, 'walletTransactions'), {
+          userId: cred.user.uid,
+          type: 'signup_bonus',
+          amount: 500,
+          label: 'Signup Bonus',
+          timestamp: serverTimestamp()
+        });
+
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        errEl.textContent = friendlyError(err.code);
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    };
+
+    function friendlyError(code) {
+      const map = {
+        'auth/email-already-in-use': 'This email is already registered. Try logging in.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password. Please try again.',
+        'auth/invalid-credential': 'Invalid email or password.',
+        'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
+        'auth/popup-blocked': 'Pop-up blocked. Please allow pop-ups for this site.',
+        'auth/account-exists-with-different-credential': 'An account already exists with this email.'
+      };
+      return map[code] || 'Something went wrong. Please try again.';
+    }
+
+    // -- Forgot Password --
+    window.openForgotPassword = function() {
+      document.getElementById('forgotPasswordModal').classList.add('active');
+      document.getElementById('resetEmail').value = document.getElementById('loginEmail').value || '';
+      document.getElementById('resetStatus').style.display = 'none';
+    };
+
+    window.closeForgotPassword = function() {
+      document.getElementById('forgotPasswordModal').classList.remove('active');
+    };
+
+    window.handleResetPassword = async function() {
+      const email = document.getElementById('resetEmail').value.trim();
+      const statusEl = document.getElementById('resetStatus');
+      const btn = document.getElementById('resetBtn');
+
+      if (!email) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--accent-red-dim)';
+        statusEl.style.color = 'var(--accent-red)';
+        statusEl.textContent = 'Please enter your email address.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--accent-green-dim)';
+        statusEl.style.color = 'var(--accent-green)';
+        statusEl.textContent = 'Password reset email sent! Check your inbox.';
+      } catch (err) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--accent-red-dim)';
+        statusEl.style.color = 'var(--accent-red)';
+        statusEl.textContent = friendlyError(err.code);
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Send Reset Link';
+    };
+  </script>
+
+  <script>
+    // Tab switching & role selection (non-module)
+    function switchTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const loginTab = document.getElementById('loginTab');
+      const registerTab = document.getElementById('registerTab');
+      const switchText = document.getElementById('switchText');
+      const switchAction = document.getElementById('switchAction');
+      document.getElementById('authError').style.display = 'none';
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        switchText.textContent = "Don't have an account?";
+        switchAction.textContent = "Register";
+        document.title = 'Login — Vortex';
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        switchText.textContent = "Already have an account?";
+        switchAction.textContent = "Sign In";
+        document.title = 'Register — Vortex';
+      }
+    }
+
+    function selectRole(role) {
+      document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
+      const solarGroup = document.getElementById('solarCapacityGroup');
+      if (role === 'prosumer') {
+        document.getElementById('roleProsumer').classList.add('selected');
+        document.getElementById('roleProsumer').querySelector('input').checked = true;
+        solarGroup.style.display = 'block';
+      } else {
+        document.getElementById('roleConsumer').classList.add('selected');
+        document.getElementById('roleConsumer').querySelector('input').checked = true;
+        solarGroup.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

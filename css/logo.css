@@ -1,0 +1,261 @@
+/* ============================================
+   VORTEX BRAND IDENTITY — Logo System
+   Full "VORTEX" wordmark with subtle lightning bg
+   ============================================ */
+
+/* --- Color Cycling Animation (Green ↔ Cyan) --- */
+@keyframes energyPulse {
+  0%, 100% { color: #00FF87; }
+  50% { color: #00E5FF; }
+}
+
+@keyframes boltGlow {
+  0%, 100% { opacity: 0.07; filter: drop-shadow(0 0 15px rgba(0, 255, 135, 0.3)); }
+  50% { opacity: 0.12; filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.4)); }
+}
+
+@keyframes subtleFlicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.8; }
+  94% { opacity: 1; }
+  96% { opacity: 0.85; }
+  97% { opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes radialGlow {
+  0%, 100% { box-shadow: 0 0 60px rgba(0, 255, 135, 0.06), 0 0 120px rgba(0, 229, 255, 0.03); }
+  50% { box-shadow: 0 0 80px rgba(0, 255, 135, 0.1), 0 0 160px rgba(0, 229, 255, 0.06); }
+}
+
+@keyframes firstTradeFlash {
+  0% { filter: drop-shadow(0 0 5px rgba(0,255,135,0.5)); }
+  25% { filter: drop-shadow(0 0 30px rgba(0,255,135,1)) brightness(2); }
+  50% { filter: drop-shadow(0 0 50px rgba(0,229,255,1)) brightness(2.5); }
+  75% { filter: drop-shadow(0 0 30px rgba(0,255,135,1)) brightness(2); }
+  100% { filter: drop-shadow(0 0 5px rgba(0,255,135,0.5)); }
+}
+
+@keyframes iconPulse {
+  0%, 100% { color: #00FF87; filter: drop-shadow(0 0 6px rgba(0, 255, 135, 0.5)); }
+  50% { color: #00E5FF; filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5)); }
+}
+
+/* --- Base Logo Container --- */
+.vortex-logo {
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+}
+
+.vortex-logo:hover .vortex-bolt-bg {
+  opacity: 0.18 !important;
+  filter: drop-shadow(0 0 30px rgba(0, 255, 135, 0.6)) !important;
+}
+
+.vortex-logo:hover .vortex-bolt-icon {
+  filter: drop-shadow(0 0 15px rgba(0, 255, 135, 1)) brightness(1.5) !important;
+}
+
+/* ============================================
+   FULL LOGO — Landing + Auth Heroes
+   "VORTEX" text with subtle bolt behind
+   ============================================ */
+.vortex-logo-full {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  border-radius: 24px;
+  animation: radialGlow 4s ease-in-out infinite;
+}
+
+.vortex-wordmark-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Lightning bolt — sits behind the text at low opacity */
+.vortex-bolt-bg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  animation: boltGlow 4s ease-in-out infinite, subtleFlicker 5s infinite;
+  color: #00FF87;
+}
+
+.vortex-bolt-bg .bolt-bg-svg {
+  width: 90px;
+  height: 108px;
+}
+
+/* The actual VORTEX text — always fully visible */
+.vortex-wordmark-text {
+  position: relative;
+  z-index: 1;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 4.5rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  text-shadow: 0 0 40px rgba(0, 255, 135, 0.15);
+}
+
+.vortex-logo-full .vortex-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-top: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   COMPACT LOGO — Sidebar
+   Small bolt icon + "VORTEX" text
+   ============================================ */
+.vortex-logo-compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.vortex-bolt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: iconPulse 6s ease-in-out infinite, subtleFlicker 5s infinite;
+  transition: filter 0.3s ease;
+}
+
+.vortex-bolt-icon .bolt-icon-svg {
+  width: 22px;
+  height: 26px;
+}
+
+.vortex-compact-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   ADMIN BADGE
+   ============================================ */
+.admin-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FF4444, #CC0000);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  margin-left: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   FIRST TRADE EASTER EGG
+   ============================================ */
+.first-trade-flash {
+  animation: firstTradeFlash 0.8s ease-in-out 3 !important;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .vortex-wordmark-text {
+    font-size: 2.5rem;
+  }
+  .vortex-bolt-bg .bolt-bg-svg {
+    width: 55px;
+    height: 66px;
+  }
+  .vortex-logo-full {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   MATCH CELEBRATION OVERLAY
+   ============================================ */
+.match-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 15, 30, 0.9);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.match-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.match-bolt {
+  color: #00E5FF;
+  width: 120px;
+  height: 140px;
+  filter: drop-shadow(0 0 40px rgba(0,229,255,0.8));
+  animation: matchBoltPulse 1s ease-in-out infinite alternate;
+  transform: scale(0.5);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.match-overlay.active .match-bolt {
+  transform: scale(1);
+}
+
+.match-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  margin-top: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 20px rgba(0, 255, 135, 0.6);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease 0.2s;
+}
+
+.match-overlay.active .match-text {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes matchBoltPulse {
+  0% { filter: drop-shadow(0 0 40px rgba(0,229,255,0.6)); color: #00E5FF; }
+  100% { filter: drop-shadow(0 0 80px rgba(0,255,135,1)) brightness(1.5); color: #00FF87; }
+}

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vortex — Decentralized P2P Energy Trading</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Trade solar energy peer-to-peer with your neighbors. Real-time bidding, dynamic pricing, and transparent settlement on the Vortex platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <style>
+    /* Landing-specific styles */
+    .nav-landing {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(10, 15, 30, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.3s;
+    }
+    .nav-landing .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .nav-landing .nav-logo .nav-bolt-icon svg {
+      width: 20px; height: 24px; color: #00FF87;
+      filter: drop-shadow(0 0 4px rgba(0,255,135,0.4));
+    }
+    .nav-landing .nav-logo .nav-brand-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 0.14em; color: rgba(255,255,255,0.95);
+      text-transform: uppercase;
+    }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { color: var(--text-secondary); font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .hero-canvas canvas { width: 100%; height: 100%; }
+
+    /* How It Works */
+    .steps-flow { display: flex; align-items: flex-start; justify-content: center; gap: 0; flex-wrap: wrap; }
+    .step-card { text-align: center; flex: 0 0 220px; padding: 2rem 1.5rem; position: relative; }
+    .step-icon {
+      width: 72px; height: 72px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 2rem;
+      background: var(--accent-green-dim);
+      border: 1px solid rgba(0,255,135,0.15);
+      transition: all 0.3s;
+    }
+    .step-card:hover .step-icon {
+      box-shadow: var(--shadow-glow-green);
+      border-color: var(--accent-green);
+      transform: translateY(-4px);
+    }
+    .step-title { font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; }
+    .step-connector {
+      display: flex; align-items: center; padding-top: 2.5rem;
+      color: var(--accent-green); font-size: 1.5rem; opacity: 0.4;
+    }
+
+    /* Feature cards */
+    .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: var(--radius-md);
+      padding: 1px;
+      background: linear-gradient(135deg, transparent, transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      transition: background 0.3s;
+    }
+    .feature-card:hover::before {
+      background: linear-gradient(135deg, rgba(0,255,135,0.3), rgba(0,229,255,0.3));
+    }
+    .feature-card:hover {
+      box-shadow: 0 0 30px rgba(0,255,135,0.06);
+      transform: translateY(-2px);
+    }
+    .feature-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+    .feature-title { font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* Neighborhood illustration */
+    .neighborhood-section { text-align: center; position: relative; }
+    .neighborhood-svg { max-width: 800px; margin: 0 auto; }
+    @keyframes energyFlow {
+      0% { stroke-dashoffset: 20; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .energy-line {
+      stroke-dasharray: 5 5;
+      animation: energyFlow 1s linear infinite;
+    }
+    .house-glow-green, .house-glow-amber {
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+    .house-glow-green:hover, .house-glow-amber:hover {
+      opacity: 0.85;
+    }
+
+    /* Calculator */
+    .calc-widget {
+      max-width: 560px; margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+    }
+    .calc-result {
+      margin-top: 1.5rem; padding: 1.5rem;
+      background: var(--accent-green-dim);
+      border: 1px solid rgba(0,255,135,0.15);
+      border-radius: var(--radius-md);
+      text-align: center;
+      display: none;
+    }
+    .calc-savings {
+      font-family: var(--font-display);
+      font-size: 2.5rem; font-weight: 700;
+      color: var(--accent-green);
+    }
+    .calc-detail { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem; }
+
+    /* CTA */
+    .cta-section {
+      text-align: center;
+      padding: 6rem 2rem;
+      background: radial-gradient(ellipse at center, rgba(0,255,135,0.04) 0%, transparent 70%);
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-primary);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .footer-links { display: flex; gap: 2rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); font-size: 0.85rem; }
+    .footer-links a:hover { color: var(--text-primary); }
+    .footer-copy { font-size: 0.75rem; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .nav-landing { padding: 0.75rem 1rem; }
+      .nav-links { gap: 1rem; }
+      .steps-flow { flex-direction: column; align-items: center; }
+      .step-connector { transform: rotate(90deg); padding: 0; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .calc-widget { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav-landing" id="mainNav">
+    <div class="nav-logo">
+      <span class="nav-bolt-icon">
+        <svg viewBox="0 0 40 48" fill="none"><path d="M24 0L8 22H18L14 48L36 20H24L28 0H24Z" fill="currentColor"/></svg>
+      </span>
+      <span class="nav-brand-text">VORTEX</span>
+    </div>
+    <div class="nav-links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#calculator">Savings</a>
+      <a href="auth.html" class="btn btn-primary btn-sm" style="font-weight:700; letter-spacing:0.03em; color:#0A0F1E;">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero" style="padding-top: 80px;">
+    <div class="hero-canvas">
+      <canvas id="particleCanvas"></canvas>
+    </div>
+    <div class="hero-content">
+      <div id="heroLogo" style="margin-bottom: 2rem;"></div>
+      <h1>Energy Trading.<br><span class="text-gradient">Reimagined.</span></h1>
+      <p>Buy and sell solar energy directly with your neighbors. No middlemen. No markups. Just clean, peer-to-peer energy trading powered by real-time auctions.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="auth.html" class="btn btn-primary btn-lg">Start Trading</a>
+        <a href="#how-it-works" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+
+      <!-- Live Stats Ticker -->
+      <div class="live-ticker" id="liveTicker">
+        <div class="ticker-item">
+          <div class="ticker-value" id="tickerKwh">0</div>
+          <div class="ticker-label">kWh Traded Today</div>
+        </div>
+        <div class="ticker-item">
+          <div class="ticker-value" id="tickerHouseholds">0</div>
+          <div class="ticker-label">Active Households</div>
+        </div>
+        <div class="ticker-item">
+          <div class="ticker-value" id="tickerGridPrice">₹0</div>
+          <div class="ticker-label">Grid Price / kWh</div>
+        </div>
+        <div class="ticker-item">
+          <div class="ticker-value" id="tickerVortexPrice">₹0</div>
+          <div class="ticker-label">Vortex Price / kWh</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="how-it-works">
+    <h2 class="section-title">How It <span class="text-gradient">Works</span></h2>
+    <p class="section-subtitle">Three simple steps to start trading energy with your community.</p>
+    <div class="steps-flow">
+      <div class="step-card">
+        <div class="step-icon">☀️</div>
+        <div class="step-title">Generate</div>
+        <div class="step-desc">Your solar panels produce excess energy during the day. List your surplus on the Vortex marketplace.</div>
+      </div>
+      <div class="step-connector">→</div>
+      <div class="step-card">
+        <div class="step-icon">⚡</div>
+        <div class="step-title">Bid</div>
+        <div class="step-desc">Set your selling price or place a buy bid. Our smart system suggests the optimal price for your zone.</div>
+      </div>
+      <div class="step-connector">→</div>
+      <div class="step-card">
+        <div class="step-icon">🔄</div>
+        <div class="step-title">Trade</div>
+        <div class="step-desc">The matching engine automatically pairs buyers and sellers every 30 seconds. Fair prices, instant settlement.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Vortex -->
+  <section class="section" id="features">
+    <h2 class="section-title">Why <span class="text-gradient">Vortex</span>?</h2>
+    <p class="section-subtitle">Built for a decentralized energy future.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <div class="feature-title">No Central Authority</div>
+        <div class="feature-desc">Trade directly with neighbors. No utility company middlemen, no hidden fees. Pure peer-to-peer energy exchange.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Dynamic Pricing</div>
+        <div class="feature-desc">Prices adapt to real-time supply and demand in your zone. Pay less when energy is abundant, earn more when it's scarce.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Real-Time Matching</div>
+        <div class="feature-desc">Our engine matches buyers and sellers every 30 seconds. No waiting, no delays — energy flows when you need it.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <div class="feature-title">Transparent Ledger</div>
+        <div class="feature-desc">Every trade is recorded and visible. Track your energy history, wallet transactions, and community impact in real time.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Neighborhood Illustration -->
+  <section class="section neighborhood-section">
+    <h2 class="section-title">Your <span class="text-gradient">Neighborhood Grid</span></h2>
+    <p class="section-subtitle">Visualize how energy flows between homes in your community.</p>
+    <div class="neighborhood-svg">
+      <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background grid -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+          </pattern>
+          <filter id="glowGreen">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glowAmber">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="800" height="400" fill="url(#grid)"/>
+
+        <!-- Energy flow lines -->
+        <line x1="180" y1="100" x2="350" y2="180" stroke="#00FF87" stroke-width="1.5" opacity="0.4" class="energy-line"/>
+        <line x1="350" y1="180" x2="520" y2="120" stroke="#00FF87" stroke-width="1.5" opacity="0.4" class="energy-line"/>
+        <line x1="520" y1="120" x2="650" y2="200" stroke="#FFB020" stroke-width="1.5" opacity="0.4" class="energy-line"/>
+        <line x1="180" y1="100" x2="150" y2="280" stroke="#00FF87" stroke-width="1.5" opacity="0.3" class="energy-line"/>
+        <line x1="350" y1="180" x2="400" y2="310" stroke="#FFB020" stroke-width="1.5" opacity="0.3" class="energy-line"/>
+        <line x1="650" y1="200" x2="600" y2="320" stroke="#00FF87" stroke-width="1.5" opacity="0.3" class="energy-line"/>
+
+        <!-- Houses — Sellers (green) -->
+        <g class="house-glow-green" transform="translate(150,60)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#00FF87" opacity="0.3"/>
+          <text x="30" y="75" fill="#00FF87" font-size="9" text-anchor="middle" font-family="Inter">Zone A</text>
+        </g>
+        <g class="house-glow-green" transform="translate(320,140)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#00FF87" opacity="0.3"/>
+          <text x="30" y="75" fill="#00FF87" font-size="9" text-anchor="middle" font-family="Inter">Zone B</text>
+        </g>
+        <g class="house-glow-green" transform="translate(490,80)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#00FF87" opacity="0.3"/>
+          <text x="30" y="75" fill="#00FF87" font-size="9" text-anchor="middle" font-family="Inter">Zone C</text>
+        </g>
+
+        <!-- Houses — Buyers (amber) -->
+        <g class="house-glow-amber" transform="translate(620,160)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#FFB020" opacity="0.3"/>
+          <text x="30" y="75" fill="#FFB020" font-size="9" text-anchor="middle" font-family="Inter">Zone D</text>
+        </g>
+        <g class="house-glow-amber" transform="translate(120,240)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#FFB020" opacity="0.3"/>
+          <text x="30" y="75" fill="#FFB020" font-size="9" text-anchor="middle" font-family="Inter">Zone A</text>
+        </g>
+        <g class="house-glow-green" transform="translate(570,280)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#00FF87" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#00FF87" opacity="0.3"/>
+          <text x="30" y="75" fill="#00FF87" font-size="9" text-anchor="middle" font-family="Inter">Zone E</text>
+        </g>
+        <g class="house-glow-amber" transform="translate(370,270)">
+          <rect x="0" y="20" width="60" height="40" rx="4" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <polygon points="30,0 0,20 60,20" fill="#141B2D" stroke="#FFB020" stroke-width="1.5"/>
+          <rect x="22" y="38" width="16" height="22" rx="2" fill="#FFB020" opacity="0.3"/>
+          <text x="30" y="75" fill="#FFB020" font-size="9" text-anchor="middle" font-family="Inter">Zone C</text>
+        </g>
+
+        <!-- Legend -->
+        <g transform="translate(30,360)">
+          <circle cx="8" cy="8" r="5" fill="#00FF87" opacity="0.7"/>
+          <text x="20" y="12" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter">Selling Energy</text>
+          <circle cx="130" cy="8" r="5" fill="#FFB020" opacity="0.7"/>
+          <text x="142" y="12" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter">Buying Energy</text>
+          <line x1="255" y1="8" x2="285" y2="8" stroke="#00FF87" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+          <text x="292" y="12" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter">Energy Flow</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Savings Calculator -->
+  <section class="section" id="calculator">
+    <h2 class="section-title">Calculate Your <span class="text-gradient">Savings</span></h2>
+    <p class="section-subtitle">See how much you could save by switching to peer-to-peer energy trading.</p>
+    <div class="calc-widget">
+      <div class="form-group">
+        <label class="form-label">Monthly Electricity Bill (₹)</label>
+        <input type="number" class="form-control" id="calcBill" placeholder="e.g. 2000" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Solar Panel Capacity (kWh/month)</label>
+        <input type="number" class="form-control" id="calcCapacity" placeholder="e.g. 300" min="0">
+      </div>
+      <button class="btn btn-primary w-full" id="calcBtn" onclick="calculateSavings()">Calculate Savings</button>
+      <div class="calc-result" id="calcResult">
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Estimated Monthly Savings</div>
+        <div class="calc-savings" id="calcSavingsValue">₹0</div>
+        <div class="calc-detail" id="calcDetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2 style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Ready to Power Your <span class="text-gradient">Neighborhood</span>?</h2>
+    <p style="color: var(--text-secondary); font-size: 1.125rem; max-width: 500px; margin: 0 auto 2rem;">Join hundreds of households already trading clean energy on Vortex.</p>
+    <a href="auth.html" class="btn btn-primary btn-lg">Create Free Account</a>
+  </section>
+
+  <!-- Footer -->
+    <div class="footer-links">
+      <a href="#hero">Home</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#calculator">Savings</a>
+      <a href="auth.html">Login</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+    <div class="footer-copy">© 2026 Vortex Energy. Decentralized P2P Energy Trading Platform. All rights reserved. • 2% platform fee on trades.</div>
+  </footer>
+
+  <script type="module">
+    import { renderFullLogo, injectFavicon } from './js/logo.js';
+    import { animateCount, fluctuateValue } from './js/utils.js';
+
+    // Inject logo & favicon
+    renderFullLogo(document.getElementById('heroLogo'));
+    injectFavicon();
+
+    // ---- Particle Network Background ----
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const PARTICLE_COUNT = 80;
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.offsetWidth;
+      canvas.height = canvas.parentElement.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 0.5;
+        this.opacity = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 255, 135, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle());
+    }
+
+    function drawConnections() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const opacity = (1 - dist / 150) * 0.15;
+            ctx.strokeStyle = `rgba(0, 229, 255, ${opacity})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      drawConnections();
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ---- Live Stats Ticker (fetch from backend) ----
+    let kwhValue = 0;
+    let householdsValue = 0;
+    const gridPrice = 8.50;
+    let vortexPrice = 5.20;
+
+    // Try to fetch real stats
+    async function fetchLiveStats() {
+      try {
+        const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:5000' : '';
+        const resp = await fetch(API + '/api/stats');
+        if (resp.ok) {
+          const data = await resp.json();
+          kwhValue = Math.round(data.totalKwh || 0);
+          householdsValue = data.totalUsers || 0;
+        }
+      } catch (e) {
+        // Backend offline — use realistic fallback
+        kwhValue = 12847;
+        householdsValue = 342;
+      }
+
+      animateCount(document.getElementById('tickerKwh'), kwhValue, 2000, '', '', 0);
+      animateCount(document.getElementById('tickerHouseholds'), householdsValue, 2000, '', '', 0);
+      animateCount(document.getElementById('tickerGridPrice'), gridPrice, 2000, '₹', '', 2);
+      animateCount(document.getElementById('tickerVortexPrice'), vortexPrice, 2000, '₹', '', 2);
+    }
+    fetchLiveStats();
+
+    // Slow fluctuation for visual effect
+    setInterval(() => {
+      if (kwhValue > 0) {
+        kwhValue = Math.round(fluctuateValue(kwhValue, 0.003));
+        document.getElementById('tickerKwh').textContent = kwhValue.toLocaleString();
+      }
+    }, 3000);
+
+    setInterval(() => {
+      const newVortex = fluctuateValue(vortexPrice, 0.01);
+      document.getElementById('tickerVortexPrice').textContent = '₹' + newVortex.toFixed(2);
+    }, 5000);
+
+    // ---- Nav scroll effect ----
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('mainNav');
+      if (window.scrollY > 50) {
+        nav.style.background = 'rgba(10, 15, 30, 0.95)';
+      } else {
+        nav.style.background = 'rgba(10, 15, 30, 0.8)';
+      }
+    });
+  </script>
+
+  <script>
+    // Savings Calculator (non-module for inline onclick)
+    function calculateSavings() {
+      const bill = parseFloat(document.getElementById('calcBill').value) || 0;
+      const capacity = parseFloat(document.getElementById('calcCapacity').value) || 0;
+      const resultDiv = document.getElementById('calcResult');
+
+      if (bill <= 0 || capacity <= 0) {
+        resultDiv.style.display = 'none';
+        return;
+      }
+
+      // Avg grid rate ~₹8.5/kWh, Vortex avg ~₹5.2/kWh
+      const gridRate = 8.5;
+      const vortexRate = 5.2;
+      const consumption = bill / gridRate;
+      const selfConsumption = Math.min(consumption, capacity * 0.6);
+      const surplus = Math.max(0, capacity * 0.6 - selfConsumption);
+      const savingsFromSolar = selfConsumption * gridRate;
+      const earningsFromSelling = surplus * vortexRate;
+      const remainingBill = Math.max(0, (consumption - selfConsumption) * vortexRate);
+      const totalSavings = Math.round(bill - remainingBill + earningsFromSelling);
+
+      resultDiv.style.display = 'block';
+      document.getElementById('calcSavingsValue').textContent = '₹' + Math.max(0, totalSavings).toLocaleString();
+      document.getElementById('calcDetail').textContent = `Save up to ${Math.round((totalSavings / bill) * 100)}% on your monthly electricity bill by trading on Vortex.`;
+    }
+  </script>
+</body>
+</html>

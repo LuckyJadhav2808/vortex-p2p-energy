@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Users ---
+    match /users/{userId} {
+      // Anyone authenticated can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Admin can read all users
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      // Users can update their own profile (but NOT isAdmin, walletBalance, energyBalance, tradesCompleted)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']) &&
+        (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['walletBalance', 'energyBalance', 'tradesCompleted'])
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        );
+    }
+
+    // --- Bids ---
+    match /bids/{bidId} {
+      // All authenticated users can read all open bids
+      allow read: if request.auth != null;
+      // Users can create their own bids
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Users can update/delete their own bids (cancel)
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // --- Trades ---
+    // ALL authenticated users can READ trades (needed for analytics, charts, marketplace).
+    // Only backend (Admin SDK) can WRITE trades.
+    match /trades/{tradeId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // --- Wallet Transactions ---
+    match /walletTransactions/{txId} {
+      // Users can read their own transactions
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Admin can read all
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      // Client can create manual_topup and withdrawal transactions
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid &&
+        request.resource.data.type in ['manual_topup', 'withdrawal', 'signup_bonus'];
+    }
+
+    // --- Notifications ---
+    match /notifications/{notifId} {
+      // Users can read their own notifications
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Users can update (mark as read) their own notifications
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Only backend creates notifications
+      allow create: if false;
+    }
+
+    // --- Zones ---
+    match /zones/{zoneId} {
+      // All authenticated users can read zones (needed for zone filter, map, registration)
+      allow read: if request.auth != null;
+      // Only admins can write zones
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // --- Logs ---
+    match /logs/{logId} {
+      // Only admins can read logs
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      // Only backend writes logs
+      allow write: if false;
+    }
+
+    // --- Platform Stats ---
+    match /platformStats/{docId} {
+      // Only admins can read
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      // Only backend writes
+      allow write: if false;
+    }
+
+    // --- Outage Reports ---
+    match /outageReports/{reportId} {
+      // Anyone authenticated can create
+      allow create: if request.auth != null;
+      // Admins can read
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+  }
+}

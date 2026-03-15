@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Real-time price analytics, zone-wise trading data, and market insights on Vortex.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+    .analytics-grid .chart-card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.5rem; min-width: 0; overflow: hidden;
+    }
+    .chart-card-full { grid-column: 1 / -1; }
+    .chart-card-title {
+      font-family: var(--font-display); font-size: 0.95rem;
+      font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);
+    }
+    .chart-wrapper { height: 250px; position: relative; min-width: 0; overflow: hidden; }
+    .grid-status-bar {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg); padding: 1.25rem;
+    }
+    .grid-stat {
+      flex: 1; min-width: 140px; text-align: center;
+      padding: 0.75rem; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.02);
+    }
+    .grid-stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .grid-stat-value { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
+    @media (max-width: 1024px) { .analytics-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarLogo"></div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a href="marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>Marketplace</a>
+        <a href="analytics.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>Analytics</a>
+        <a href="wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallet</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        <a href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>Admin</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-zone" id="userZone">Zone —</div>
+        <span class="sidebar-user-role" id="userRole">—</span>
+        <div style="font-size:0.8rem;font-weight:500;" id="userName">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:0.5rem;color:var(--accent-red);">↩ Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;">📊 Price Analytics</h1>
+
+      <!-- Grid Status Bar -->
+      <div class="grid-status-bar" id="gridStatusBar">
+        <div class="grid-stat">
+          <div class="grid-stat-label">Grid Frequency</div>
+          <div class="grid-stat-value" id="gridFrequency" style="color:var(--accent-green);">— Hz</div>
+        </div>
+        <div class="grid-stat">
+          <div class="grid-stat-label">Grid Load</div>
+          <div class="grid-stat-value" id="gridLoad" style="color:var(--accent-amber);">—</div>
+        </div>
+        <div class="grid-stat">
+          <div class="grid-stat-label">Solar Contribution</div>
+          <div class="grid-stat-value" id="solarContrib" style="color:var(--accent-green);">— %</div>
+        </div>
+        <div class="grid-stat">
+          <div class="grid-stat-label">Grid Tariff</div>
+          <div class="grid-stat-value" id="gridTariff" style="color:var(--accent-red);">₹—/kWh</div>
+        </div>
+        <div class="grid-stat">
+          <div class="grid-stat-label">Grid Status</div>
+          <div class="grid-stat-value" id="gridStatus">—</div>
+        </div>
+      </div>
+
+      <!-- Market Stats -->
+      <div class="stat-cards" style="margin-top:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-card-label">Total Trades</div>
+          <div class="stat-card-value" id="totalTradesCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Total kWh Traded</div>
+          <div class="stat-card-value" style="color:var(--accent-cyan);" id="totalKwhTraded">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Avg Price</div>
+          <div class="stat-card-value" style="color:var(--accent-green);" id="avgPrice">₹0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Active Listings</div>
+          <div class="stat-card-value" style="color:var(--accent-amber);" id="activeListings">0</div>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <!-- Zone-wise Average Price -->
+        <div class="chart-card">
+          <div class="chart-card-title">📊 Zone-wise Average Clearing Price</div>
+          <div class="chart-wrapper"><canvas id="zonePriceChart"></canvas></div>
+        </div>
+
+        <!-- Supply vs Demand -->
+        <div class="chart-card">
+          <div class="chart-card-title">⚖️ Supply vs Demand by Zone</div>
+          <div class="chart-wrapper"><canvas id="supplyDemandChart"></canvas></div>
+        </div>
+
+        <!-- 24h Price Trend -->
+        <div class="chart-card chart-card-full">
+          <div class="chart-card-title">📈 24-Hour Price Trend (Vortex vs Grid)</div>
+          <div class="chart-wrapper"><canvas id="priceTrendChart"></canvas></div>
+        </div>
+
+        <!-- Trade Volume Over Time -->
+        <div class="chart-card chart-card-full">
+          <div class="chart-card-title">📉 Trade Volume Over Time (7 Days)</div>
+          <div class="chart-wrapper"><canvas id="volumeChart"></canvas></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/analytics.js"></script>
+</body>
+</html>

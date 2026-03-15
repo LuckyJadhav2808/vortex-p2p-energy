@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Vortex</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta name="description" content="Vortex admin panel for system monitoring, matching engine control, and user management.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/logo.css">
+  <style>
+    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+    .log-feed {
+      max-height: 400px; overflow-y: auto;
+      background: var(--bg-secondary); border-radius: var(--radius-sm);
+      border: 1px solid var(--border-primary);
+    }
+    .trigger-section {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1.25rem;
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md); margin-top: 1.25rem;
+    }
+    .zone-actions { display: flex; gap: 0.4rem; }
+    .zone-actions button {
+      padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px;
+      border: 1px solid var(--border-primary); background: var(--bg-input);
+      color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    }
+    .zone-actions .btn-edit:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    .zone-actions .btn-del:hover { border-color: var(--accent-red); color: var(--accent-red); }
+    @media (max-width: 1024px) {
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    /* ---- Modal Styles (not in global styles.css) ---- */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none; /* default hidden */
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal {
+      background: var(--bg-card, #131928); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; width: 100%; max-width: 480px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .modal-title { font-family: var(--font-display, 'Space Grotesk', sans-serif); font-size: 1.1rem; font-weight: 600; color: #fff; margin:0; }
+    .modal-close {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .modal-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; gap: 0.75rem; justify-content: flex-end;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); font-weight: 500; }
+    .form-control {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #fff; padding: 0.6rem 0.875rem;
+      font-size: 0.9rem; font-family: inherit; transition: border-color 0.2s;
+    }
+    .form-control:focus { outline: none; border-color: #00FF87; }
+    /* Map house tooltip */
+    #mapTooltip {
+      position: fixed; z-index: 9998;
+      background: rgba(13,19,35,0.95); border: 1px solid rgba(0,255,135,0.3);
+      border-radius: 8px; padding: 0.6rem 0.875rem;
+      font-size: 0.75rem; color: rgba(255,255,255,0.85);
+      pointer-events: none; display: none;
+      backdrop-filter: blur(8px);
+      white-space: pre-line; line-height: 1.6;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarLogo"></div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a href="marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>Marketplace</a>
+        <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>Analytics</a>
+        <a href="wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallet</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        <a href="admin.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>Admin</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-zone" id="userZone">Zone —</div>
+        <span class="sidebar-user-role" id="userRole">—</span>
+        <div style="font-size:0.8rem;font-weight:500;" id="userName">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:0.5rem;color:var(--accent-red);">↩ Logout</button>
+      </div>
+    </aside>
+    <main class="main-content" id="adminContent">
+      <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.25rem;">⚙️ Admin Panel</h1>
+
+      <!-- System Overview Stats -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-card-label">Total Users</div>
+          <div class="stat-card-value" id="adminTotalUsers">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Trades Today</div>
+          <div class="stat-card-value" id="adminTradesToday">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Total kWh Traded</div>
+          <div class="stat-card-value" id="adminTotalKwh">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Total ₹ Settled</div>
+          <div class="stat-card-value" id="adminTotalSettled">₹0</div>
+        </div>
+      </div>
+
+      <div class="trigger-section">
+        <div style="flex:1;">
+          <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;">Matching Engine</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Manually trigger the bid matching algorithm. Auto-runs every 30 seconds when the backend is active.</p>
+        </div>
+        <button class="btn btn-primary" id="triggerMatchBtn">⚡ Run Matching Engine</button>
+      </div>
+
+      <div class="trigger-section" style="margin-top:0.75rem;">
+        <div style="flex:1;">
+          <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;">Energy Simulation</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Manually trigger solar energy generation for all prosumers. Auto-runs every 5 minutes during daylight.</p>
+        </div>
+        <button class="btn btn-amber" id="triggerSimBtn">☀ Run Energy Sim</button>
+      </div>
+
+      <!-- Revenue Dashboard -->
+      <div class="card" style="margin-top:1.25rem;">
+        <div class="card-header">
+          <span class="card-title">💸 Platform Revenue</span>
+          <span class="badge badge-green" id="feeLabel">2% Fee</span>
+        </div>
+        <div class="stat-cards" style="margin-top:1rem;">
+          <div class="stat-card">
+            <div class="stat-card-label">Total Fees Earned</div>
+            <div class="stat-card-value" style="color:var(--accent-green);" id="adminTotalFees">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Total Volume Settled</div>
+            <div class="stat-card-value" id="adminTotalVolume">₹0</div>
+          </div>
+        </div>
+        <div style="height:200px;margin-top:1rem;"><canvas id="revenueChart"></canvas></div>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Zone Management -->
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title">🗺️ Zone Management</span>
+            <button class="btn btn-primary btn-sm" id="addZoneBtn">+ Add Zone</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Zone</th><th>Label</th><th>Rate</th><th>Users</th><th>Open Bids</th><th>Actions</th></tr></thead>
+              <tbody id="zoneBreakdownBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Live Log Feed -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 Engine Logs</span>
+            <span class="badge badge-green">Live</span>
+          </div>
+          <div class="log-feed" id="logFeed">
+            <div style="text-align:center;color:var(--text-muted);padding:2rem;">Loading logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="card" style="margin-top:1.25rem;">
+        <div class="card-header">
+          <span class="card-title">👥 All Users</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Name</th><th>Zone</th><th>Role</th><th>Wallet</th><th>Trades</th><th>Energy</th></tr></thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ---- Floating Map Tooltip ---- -->
+  <div id="mapTooltip"></div>
+
+  <!-- Zone CRUD Modal -->
+  <div class="modal-overlay" id="zoneModalOverlay" style="display:none;">
+    <div class="modal" id="zoneModalContent">
+      <div class="modal-header">
+        <h3 class="modal-title" id="zoneModalTitle">Add New Zone</h3>
+        <button class="modal-close" id="zoneModalCloseBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="zoneEditId">
+        <div class="form-group">
+          <label class="form-label">Zone Code (e.g. F, G)</label>
+          <input type="text" class="form-control" id="zoneCode" placeholder="F" maxlength="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zone Label / Name</label>
+          <input type="text" class="form-control" id="zoneLabel" placeholder="Riverside Community">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Base Rate (₹/kWh)</label>
+          <input type="number" class="form-control" id="zoneRate" placeholder="5.50" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="zoneStatus">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="zoneCancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="zoneSaveBtn">Save Zone</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
