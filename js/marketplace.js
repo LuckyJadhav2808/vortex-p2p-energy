@@ -53,18 +53,12 @@ requireAuth(async (user) => {
   loadZoneFilter();
   setupControls();
 
-  // Show role banner so user knows what they're seeing
+  // Show unified marketplace banner
   const subtitle = document.getElementById('marketSubtitle');
   if (subtitle) {
-    if (userProfile.role === 'prosumer') {
-      subtitle.textContent = '☀ Prosumer View — Showing buyer requests for your energy';
-      subtitle.style.background = 'rgba(0,255,135,0.08)';
-      subtitle.style.color = 'var(--accent-green)';
-    } else {
-      subtitle.textContent = '🏠 Consumer View — Showing sellers with available energy';
-      subtitle.style.background = 'rgba(255,176,32,0.08)';
-      subtitle.style.color = 'var(--accent-amber)';
-    }
+    subtitle.textContent = '⚡ Global Marketplace — All open buy & sell bids from every zone';
+    subtitle.style.background = 'rgba(0,229,255,0.08)';
+    subtitle.style.color = 'var(--accent-cyan)';
   }
 });
 
@@ -97,19 +91,15 @@ async function loadZoneFilter() {
 }
 
 function loadListings() {
-  // For prosumers, show buy requests (they want to sell their energy)
-  // For consumers, show sell listings (they want to buy energy)
-  const showType = userProfile.role === 'prosumer' ? 'buy' : 'sell';
-  const headerText = userProfile.role === 'prosumer' ? '🔍 Energy Requests (Buyers)' : '⚡ Energy Listings (Sellers)';
-  
+  // Show ALL open bids (both buy and sell) to every user
   const headerEl = document.getElementById('listingsHeader');
-  if (headerEl) headerEl.textContent = headerText;
+  if (headerEl) headerEl.textContent = '⚡ All Energy Bids (Buy & Sell)';
 
   let q;
   if (currentZoneFilter !== 'all') {
-    q = query(collection(db, 'bids'), where('type', '==', showType), where('status', '==', 'open'), where('zone', '==', currentZoneFilter));
+    q = query(collection(db, 'bids'), where('status', '==', 'open'), where('zone', '==', currentZoneFilter));
   } else {
-    q = query(collection(db, 'bids'), where('type', '==', showType), where('status', '==', 'open'));
+    q = query(collection(db, 'bids'), where('status', '==', 'open'));
   }
 
   onSnapshot(q, (snap) => {
@@ -139,14 +129,21 @@ function loadListings() {
       card.className = 'listing-card';
       card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border-primary);border-radius:var(--radius-lg);padding:1.5rem;transition:all 0.3s;position:relative;overflow:hidden;';
       
-      const colorAccent = showType === 'sell' ? 'var(--accent-green)' : 'var(--accent-amber)';
-      const feeNote = showType === 'sell' ? '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.25rem;">2% platform fee applies</div>' : '';
+      // Use bid.type per card (not a global showType) so both buy & sell render correctly
+      const isSell = bid.type === 'sell';
+      const colorAccent = isSell ? 'var(--accent-green)' : 'var(--accent-amber)';
+      const feeNote = isSell ? '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.25rem;">2% platform fee applies</div>' : '';
+      const badgeClass = isSell ? 'badge-green' : 'badge-amber';
+      const btnClass = isSell ? 'btn-primary' : 'btn-amber';
+      const btnLabel = isSell ? '🛒 Buy' : '☀ Sell';
+      const bidTypeLabel = isSell ? 'SELL' : 'BUY';
       
       card.innerHTML = `
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${colorAccent};opacity:0.5;"></div>
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem;">
           <div>
-            <span class="badge ${showType === 'sell' ? 'badge-green' : 'badge-amber'}">Zone ${bid.zone}</span>
+            <span class="badge ${badgeClass}">Zone ${bid.zone}</span>
+            <span class="badge ${badgeClass}" style="margin-left:0.25rem;font-size:0.65rem;">${bidTypeLabel}</span>
             ${isOwn ? '<span class="badge badge-cyan" style="margin-left:0.25rem;">YOUR BID</span>' : ''}
           </div>
           <span class="bid-countdown" id="listing-timer-${bid.id}" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--accent-amber);"></span>
@@ -160,8 +157,8 @@ function loadListings() {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:0.75rem;border-top:1px solid var(--border-primary);">
           <span style="font-size:0.75rem;color:var(--text-muted);">by ${bid.userName || 'Anonymous'} • ${timeAgo(bid.createdAt)}</span>
-          ${!isOwn ? `<button class="btn ${showType === 'sell' ? 'btn-primary' : 'btn-amber'} btn-sm" onclick="fulfillOrder('${bid.id}', '${showType}', ${bid.kwhAmount}, ${bid.pricePerUnit}, '${bid.zone}')">
-            ${showType === 'sell' ? '🛒 Buy' : '☀ Sell'}
+          ${!isOwn ? `<button class="btn ${btnClass} btn-sm" onclick="fulfillOrder('${bid.id}', '${bid.type}', ${bid.kwhAmount}, ${bid.pricePerUnit}, '${bid.zone}')">
+            ${btnLabel}
           </button>` : ''}
         </div>
       `;

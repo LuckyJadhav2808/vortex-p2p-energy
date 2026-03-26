@@ -68,8 +68,8 @@ service cloud.firestore {
 
     // --- Zones ---
     match /zones/{zoneId} {
-      // All authenticated users can read zones (needed for zone filter, map, registration)
-      allow read: if request.auth != null;
+      // Anyone can read zones (needed for zone filter, map, registration)
+      allow read: if true;
       // Only admins can write zones
       allow write: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
